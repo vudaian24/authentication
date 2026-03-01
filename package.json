@@ -1,0 +1,23 @@
+{
+  "name": "authentication-labs",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "labs/*/server",
+    "labs/*/client"
+  ],
+  "scripts": {
+    "01": "concurrently \"yarn workspace @auth-labs/01-server dev\" \"yarn workspace @auth-labs/01-client dev\"",
+    "02": "concurrently \"yarn workspace @auth-labs/02-server dev\" \"yarn workspace @auth-labs/02-client dev\"",
+    "03": "concurrently \"yarn workspace @auth-labs/03-server dev\" \"yarn workspace @auth-labs/03-client dev\"",
+    "04": "concurrently \"yarn workspace @auth-labs/04-server dev\" \"yarn workspace @auth-labs/04-client dev\"",
+    "05": "concurrently \"yarn workspace @auth-labs/05-server dev\" \"yarn workspace @auth-labs/05-client dev\"",
+    "06": "concurrently \"yarn workspace @auth-labs/06-server dev\" \"yarn workspace @auth-labs/06-client dev\"",
+    "07": "concurrently \"yarn workspace @auth-labs/07-server dev\" \"yarn workspace @auth-labs/07-client dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.3"
+  }
+}
