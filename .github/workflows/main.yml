@@ -1,0 +1,57 @@
+name: Pipeline
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
+  cd:
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/cd.yml
+    secrets: inherit
+
+  notify:
+    name: Notify Telegram
+    needs: [ci, cd]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Status Message
+        id: status
+        run: |
+          if [[ "${{ needs.ci.result }}" == "success" && "${{ needs.cd.result }}" == "success" ]]; then
+            echo "message=✅ *Pipeline Passed*" >> $GITHUB_OUTPUT
+          elif [[ "${{ needs.cd.result }}" == "skipped" && "${{ needs.ci.result }}" == "success" ]]; then
+            echo "message=✅ *CI Passed* (CD skipped - PR only)" >> $GITHUB_OUTPUT
+          else
+            echo "message=❌ *Pipeline Failed*" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Telegram Notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          message: |
+            ${{ steps.status.outputs.message }}
+
+            📦 *Repo:* `${{ github.repository }}`
+            🌿 *Branch:* `${{ github.ref_name }}`
+            👤 *Author:* `${{ github.actor }}`
+            💬 *Commit:* `${{ github.event.head_commit.message }}`
+            🔗 [View Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+        env:
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
