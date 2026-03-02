@@ -8,7 +8,8 @@
     "labs/*/client"
   ],
   "scripts": {
-    "01": "concurrently \"yarn workspace @auth-labs/01-server dev\" \"yarn workspace @auth-labs/01-client dev\"",
+    "build:shared": "yarn workspace @auth-labs/shared build",
+    "01": "yarn build:shared && concurrently \"yarn workspace @auth-labs/01-server dev\" \"yarn workspace @auth-labs/01-client dev\"",
     "02": "concurrently \"yarn workspace @auth-labs/02-server dev\" \"yarn workspace @auth-labs/02-client dev\"",
     "03": "concurrently \"yarn workspace @auth-labs/03-server dev\" \"yarn workspace @auth-labs/03-client dev\"",
     "04": "concurrently \"yarn workspace @auth-labs/04-server dev\" \"yarn workspace @auth-labs/04-client dev\"",

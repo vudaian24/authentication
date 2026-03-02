@@ -7,6 +7,7 @@ jobs:
   lint-and-build:
     name: Lint and Build
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -16,3 +17,15 @@ jobs:
         with:
           node-version: 20
           cache: yarn
+
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build Shared Package
+        run: yarn workspace @auth-labs/shared build
+
+      - name: Type Check — Lab 01 Server
+        run: yarn workspace @auth-labs/01-server tsc --noEmit
+
+      - name: Build — Lab 01 Client
+        run: yarn workspace @auth-labs/01-client build
