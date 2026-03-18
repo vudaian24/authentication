@@ -39,8 +39,10 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
-                sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest"
+                sh "docker build -f labs/01-basic-auth/server/Dockerfile -t ${DOCKER_IMAGE}-server:${DOCKER_TAG} ."
+                sh "docker build -f labs/01-basic-auth/client/Dockerfile -t ${DOCKER_IMAGE}-client:${DOCKER_TAG} ."
+                sh "docker tag ${DOCKER_IMAGE}-server:${DOCKER_TAG} ${DOCKER_IMAGE}-server:latest"
+                sh "docker tag ${DOCKER_IMAGE}-client:${DOCKER_TAG} ${DOCKER_IMAGE}-client:latest"
             }
         }
 
@@ -55,8 +57,10 @@ pipeline {
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
-                    sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
-                    sh "docker push ${DOCKER_IMAGE}:latest"
+                    sh "docker push ${DOCKER_IMAGE}-server:${DOCKER_TAG}"
+                    sh "docker push ${DOCKER_IMAGE}-server:latest"
+                    sh "docker push ${DOCKER_IMAGE}-client:${DOCKER_TAG}"
+                    sh "docker push ${DOCKER_IMAGE}-client:latest"
                 }
             }
         }
