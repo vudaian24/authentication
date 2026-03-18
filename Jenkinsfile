@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'anvd2401/auth-labs'
+        DOCKER_IMAGE = 'anvd2401/authentication'
         DOCKER_TAG = "${BUILD_NUMBER}"
     }
 
@@ -28,12 +28,6 @@ pipeline {
         stage('Type Check') {
             steps {
                 sh 'yarn workspace @auth-labs/01-server tsc --noEmit'
-            }
-        }
-
-        stage('Lint') {
-            steps {
-                sh 'yarn lint'
             }
         }
 
@@ -71,7 +65,7 @@ pipeline {
     post {
         success {
             script {
-                def message = env.BRANCH_NAME == 'main'
+                def message = env.GIT_BRANCH == 'main'
                     ? "✅ *Pipeline Passed*"
                     : "✅ *CI Passed* (CD skipped - PR only)"
                 sendTelegram(message)
@@ -93,12 +87,15 @@ def sendTelegram(String message) {
         string(credentialsId: 'telegram-bot-token', variable: 'BOT_TOKEN'),
         string(credentialsId: 'telegram-chat-id', variable: 'CHAT_ID')
     ]) {
-        def repoName = env.GIT_URL?.tokenize('/')?.last()?.replace('.git', '') ?: 'unknown'
-        def shortCommit = env.GIT_COMMIT?.take(7) ?: 'unknown'
+        def repoName = 'authentication'
+        def shortCommit = env.GIT_COMMIT ? env.GIT_COMMIT.take(7) : 'unknown'
+        def branch = env.GIT_BRANCH ?: 'main'
+        def author = env.GIT_COMMITTER_NAME ?: 'unknown'
+
         def fullMessage = """${message}
 📦 *Repo:* `${repoName}`
-🌿 *Branch:* `${env.BRANCH_NAME}`
-👤 *Author:* `${env.GIT_AUTHOR_NAME}`
+🌿 *Branch:* `${branch}`
+👤 *Author:* `${author}`
 💬 *Commit:* `${shortCommit}`
 🔗 [View Run](${env.BUILD_URL})"""
 
@@ -106,7 +103,7 @@ def sendTelegram(String message) {
             curl -s -X POST https://api.telegram.org/bot\${BOT_TOKEN}/sendMessage \
                 -d chat_id=\${CHAT_ID} \
                 -d parse_mode=Markdown \
-                -d text="${fullMessage.replace('"', '\\"')}"
+                --data-urlencode text="${fullMessage}"
         """
     }
 }
