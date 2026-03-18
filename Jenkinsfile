@@ -61,49 +61,4 @@ pipeline {
             }
         }
     }
-
-    post {
-        success {
-            script {
-                def message = env.GIT_BRANCH == 'main'
-                    ? "✅ *Pipeline Passed*"
-                    : "✅ *CI Passed* (CD skipped - PR only)"
-                sendTelegram(message)
-            }
-        }
-        failure {
-            script {
-                sendTelegram("❌ *Pipeline Failed*")
-            }
-        }
-        always {
-            sh 'docker logout || true'
-        }
-    }
-}
-
-def sendTelegram(String message) {
-    withCredentials([
-        string(credentialsId: 'telegram-bot-token', variable: 'BOT_TOKEN'),
-        string(credentialsId: 'telegram-chat-id', variable: 'CHAT_ID')
-    ]) {
-        def repoName = 'authentication'
-        def shortCommit = env.GIT_COMMIT ? env.GIT_COMMIT.take(7) : 'unknown'
-        def branch = env.GIT_BRANCH ?: 'main'
-        def author = env.GIT_COMMITTER_NAME ?: 'unknown'
-
-        def fullMessage = """${message}
-📦 *Repo:* `${repoName}`
-🌿 *Branch:* `${branch}`
-👤 *Author:* `${author}`
-💬 *Commit:* `${shortCommit}`
-🔗 [View Run](${env.BUILD_URL})"""
-
-        sh """
-            curl -s -X POST https://api.telegram.org/bot\${BOT_TOKEN}/sendMessage \
-                -d chat_id=\${CHAT_ID} \
-                -d parse_mode=Markdown \
-                --data-urlencode text="${fullMessage}"
-        """
-    }
 }
